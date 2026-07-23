@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Se Juega en Casa — Dashboard de Fidelización</title>
+<style>
+:root{
+  --green:#0a7a45;
+  --green-dark:#065a33;
+  --gold:#f4b400;
+  --red:#e2231a;
+  --navy:#0d2b4b;
+  --bg:#f4f6f5;
+  --card:#ffffff;
+  --text:#1c2b25;
+  --muted:#5c6b64;
+  --border:#e3e8e5;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  background:linear-gradient(120deg,var(--green-dark),var(--green) 60%,var(--gold));
+  color:#fff;
+  padding:28px 32px;
+}
+header h1{margin:0 0 4px;font-size:26px;font-weight:700;}
+header p{margin:0;opacity:.92;font-size:14px;}
+.badge{
+  display:inline-block;
+  background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:20px;
+  padding:4px 12px;
+  font-size:12px;
+  margin-top:10px;
+}
+main{max-width:1280px;margin:0 auto;padding:24px 20px 60px;}
+.section-title{
+  font-size:16px;
+  font-weight:700;
+  color:var(--navy);
+  margin:36px 0 14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.section-title .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);display:inline-block;}
+.subsection-title{font-size:12.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:22px 0 10px;}
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:14px;
+}
+.kpi{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px 18px;
+  position:relative;
+  overflow:hidden;
+}
+.kpi::before{
+  content:'';
+  position:absolute;top:0;left:0;bottom:0;width:4px;background:var(--green);
+}
+.kpi.alt::before{background:var(--gold);}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+.kpi .value{font-size:26px;font-weight:800;color:var(--navy);margin-top:6px;}
+.kpi .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.grid2{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px 18px 12px;
+}
+.card h3{font-size:14px;margin:0 0 12px;color:var(--navy);font-weight:700;}
+.card .note{font-size:11.5px;color:var(--muted);margin-top:8px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;}
+tr:last-child td{border-bottom:none;}
+.pill{
+  display:inline-block;padding:2px 8px;border-radius:12px;font-size:11.5px;font-weight:700;
+}
+.pill.high{background:#e5f5ec;color:var(--green-dark);}
+.pill.mid{background:#fff4d9;color:#8a6300;}
+.pill.low{background:#fdeaea;color:var(--red);}
+footer{
+  max-width:1280px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:11.5px;
+}
+.disclaimer{
+  background:#fff9e8;border:1px solid #f0dfa0;border-radius:10px;padding:12px 16px;font-size:12.5px;color:#6b5300;margin-top:36px;
+}
+/* --- chart building blocks (pure SVG, no external libs) --- */
+.hbar-row{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:12px;}
+.hbar-label{width:150px;flex:0 0 150px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hbar-track{flex:1;background:#eef1ef;border-radius:5px;height:14px;position:relative;overflow:hidden;}
+.hbar-fill{height:100%;border-radius:5px;}
+.hbar-value{width:56px;flex:0 0 56px;text-align:right;font-weight:700;color:var(--navy);}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;margin-top:10px;justify-content:center;}
+.legend-item{display:flex;align-items:center;gap:5px;}
+.legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block;}
+.wrap-svg{width:100%;overflow-x:auto;}
+.funnel-wrap{display:flex;justify-content:center;padding:6px 0 4px;}
+.funnel-side{font-size:11px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#9917; Se Juega en Casa — Dashboard de Fidelización</h1>
+  <p>Muebles Jamar · Campaña de fidelización por pagos y compras · Juego en línea "Penalti Campeón"</p>
+  <span class="badge">Datos de cierre · premios canjeados actualizados al 23 de julio de 2026</span>
+</header>
+
+<main>
+
+  <div class="section-title"><span class="dot"></span>Resumen del embudo de la campaña</div>
+  <div class="kpi-grid" id="kpiFunnel"></div>
+
+  <div class="subsection-title">Tasas de conversión</div>
+  <div class="kpi-grid" id="kpiFunnelExtra"></div>
+
+  <div class="card" style="margin-top:16px;">
+    <h3>Embudo de conversión</h3>
+    <div id="funnelChart" class="funnel-wrap"></div>
+    <p class="note" style="text-align:center;">Los anchos de las etapas son estilizados para lectura visual; los valores y porcentajes mostrados son los datos reales.</p>
+  </div>
+
+  <div class="section-title"><span class="dot"></span>Goles otorgados (universo de clientes)</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Tendencia diaria de goles otorgados</h3>
+      <div id="chartGolesTrend" class="wrap-svg"></div>
+    </div>
+    <div class="card">
+      <h3>Tipo de transacción que generó el gol</h3>
+      <div id="chartGolesCampania" class="wrap-svg"></div>
+      <p class="note">Campaña 250 = pago de cuotas de crédito · Campaña 251 = compras en tienda</p>
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:16px;">
+    <div class="card">
+      <h3>Top 10 de participación por departamento</h3>
+      <div id="chartGolesDepto"></div>
+    </div>
+    <div class="card">
+      <h3>Top 10 de participación por agencia</h3>
+      <div id="chartGolesAgencia"></div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:16px;">
+    <div class="card">
+      <h3>Estado de cartera del cliente</h3>
+      <div id="chartEstadoCartera" class="wrap-svg"></div>
+      <p class="note">Aplica a clientes de la campaña 250 (pago de cuotas). Los de campaña 251 (compras) no tienen cartera de crédito asociada.</p>
+    </div>
+    <div class="card">
+      <h3>Oportunidades por segmento de cliente</h3>
+      <div id="chartSegmento"></div>
+    </div>
+  </div>
+
+  <div class="subsection-title">Valor monetario generado por la campaña</div>
+  <div class="kpi-grid" id="kpiValor"></div>
+  <div class="grid2" style="margin-top:16px;">
+    <div class="card">
+      <h3>Valor generado: pagos vs. compras</h3>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px;">Goles otorgados</div>
+          <div id="chartGolesTipoPct"></div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px;">Valor generado</div>
+          <div id="chartValorTipo"></div>
+        </div>
+      </div>
+      <p class="note">Las compras son solo el 6.4% de los goles otorgados, pero generan el 64.6% del valor total: pocas transacciones, de monto mucho más alto que los pagos de cuota.</p>
+    </div>
+    <div class="card">
+      <h3>Valor generado por clientes que jugaron vs. que no jugaron</h3>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px;">Pagos (250)</div>
+          <div id="chartValorParticipacionPagos"></div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px;">Compras (251)</div>
+          <div id="chartValorParticipacionCompras"></div>
+        </div>
+      </div>
+      <p class="note">Cruce con el archivo Usuarios Participantes: qué parte del valor (pagos/compras) proviene de clientes que efectivamente fueron a jugar Penalti Campeón.</p>
+    </div>
+  </div>
+
+  <div class="section-title"><span class="dot"></span>Premios ganados vs. reclamados (control de inventario)</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Ganados vs. canjeados por premio</h3>
+      <div id="chartPremiosGanCanj"></div>
+    </div>
+    <div class="card">
+      <h3>Detalle de inventario por premio</h3>
+      <div style="max-height:300px;overflow:auto;">
+      <table id="tablaPremios">
+        <thead><tr><th>Premio</th><th>Ganados</th><th>Canjeados</th><th>Pendientes</th><th>% Reclamo</th><th>Stock tienda</th><th>Diferencia</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+      <p class="note">Pendientes = ganados − canjeados (clientes que faltan por reclamar). Stock tienda = existencia física real reportada al 11 jul. Diferencia = stock − pendientes: negativo significa que no alcanza el stock actual para cubrir a todos los ganadores pendientes.</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:16px;">
+    <div class="card">
+      <h3>Stock físico por ciudad</h3>
+      <div id="chartStockCiudad"></div>
+    </div>
+    <div class="card">
+      <h3>Resumen de inventario físico</h3>
+      <div class="kpi-grid" id="kpiStock" style="grid-template-columns:repeat(2,1fr);"></div>
+      <p class="note">El archivo de stock reporta por ciudad (Barranquilla, Cartagena, Santa Marta, Bucaramanga, Medellín, Bogotá), no por tienda puntual, por lo que no se cruza 1 a 1 con "Premios canjeados por tienda". No incluye "Abono a Saldo" ni los bonos de amoblamiento, que no son inventario físico.</p>
+    </div>
+  </div>
+
+  <div class="section-title"><span class="dot"></span>Desempeño por tienda y por región</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Premios canjeados por tienda (punto de validación)</h3>
+      <div id="chartCanjSite"></div>
+      <p class="note">Solo incluye premios físicos validados con código QR en tienda (405 en total, actualizado al 23 jul). No incluye los 138 abonos a saldo aplicados directamente a la cuenta, que no pasan por una tienda.</p>
+    </div>
+    <div class="card">
+      <h3>Ganadores por departamento/región</h3>
+      <div id="chartGanRegion"></div>
+    </div>
+  </div>
+
+  <div class="section-title"><span class="dot"></span>Participación en el juego</div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Usuarios participantes por departamento</h3>
+      <div id="chartPartSeg" class="wrap-svg"></div>
+    </div>
+    <div class="card">
+      <h3>Tendencia de premios ganados por día</h3>
+      <div id="chartGanTrend" class="wrap-svg"></div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <b>Notas de datos:</b> (1) Los "goles otorgados" corresponden a cada registro del universo de clientes (Código 250 = pagos de cuota, 251 = compras); cada cliente necesita 5 goles para jugar y ganar. (2) "Pendientes por reclamar" (ganados − canjeados) mide ganadores sin premio entregado; "Stock tienda" mide unidades físicas reales reportadas en el archivo "Stock Final en Tiendas" (corte 11 jul, aún no actualizado). Son dos cosas distintas: la primera es demanda pendiente, la segunda es oferta disponible. Con el archivo de canjeados actualizado al 23 jul, la columna "Diferencia" (stock − pendientes) sigue negativa en Maletín deportivo (-1), Balón de Fútbol (-2), Termo Edición Especial (-1) y Hielera Deportiva (-1): en total faltan 5 unidades en tienda para cubrir a los ganadores pendientes (bajó de 7 a 5 gracias a los canjes de estos días). Camiseta de la Selección Colombia ya quedó en 0 (equilibrado). (3) El premio "Abono a Saldo $100.000" se aplica directo a la cuenta del cliente y no pasa por validación en tienda; se contabiliza como "canjeado" a partir del archivo de abonos aplicados (ver nota 9), no del cruce QR en tienda. (4) En "Ganadores por región" se agruparon variaciones de escritura (ej. "Bq" y "Bolívar/Bolivar"). (5) "% de clientes que jugaron/ganaron" y la "tasa de participación global" usan como base los clientes únicos con al menos un gol otorgado (58,139). "% que ganaron" cuenta clientes únicos ganadores (659), no el total de premios (734), para no inflar la cifra con clientes que ganaron más de un premio. (6) El "valor monetario generado" suma el valor de pago/compra asociado a cada gol otorgado (no es el saldo total de cartera ni una cifra de ventas oficial de Jamar); el cruce con participación usa Cédula (universo) = ID Externo (participantes), que coincidió en el 100% de los casos. (7) "Estado de cartera" solo aplica a clientes de la campaña 250 (pago de cuotas); los de la campaña 251 (compras) no tienen cartera de crédito asociada y se muestran como "Sin dato (compras)". (8) Datos de cierre (corte 11 jul 2026): "Premios canjeados" (403) y el detalle ganados/canjeados por premio ahora se toman directamente del archivo de Ganadores (columna "Premio canjeado"), cruzado y validado contra el pivote de Premios Canjeados por tienda (coincide en 403). "Usuarios participantes" ahora es de 1,716 clientes únicos (antes 2,484): el archivo de cierre cambió de "un registro por usuario" a "un registro por jugada", por lo que se cuentan logins únicos. (9) El premio "Abono a Saldo $100.000" ya se integró con el archivo "BD Consolidada de Abonos a Saldo Aplicados": 138 de los 150 ganadores (92%) ya recibieron su abono a la cuenta, cruzado por cédula con coincidencia del 100%; los 12 restantes quedan como pendientes. "Premios canjeados" (543) = 405 premios físicos validados en tienda + 138 abonos aplicados a cuenta. (10) El archivo "Stock Final en Tiendas" reporta por ciudad, no por tienda puntual; se cruzó por nombre de producto con los premios físicos (ej. "Balon Golty" = Balón de Fútbol, "MALETA GIMNASIO GOLTY" = Maletín deportivo, "TERMO BRANDEADO" = Termo Edición Especial, "Smart TV LG" = Smart TV 50", "Asador" = Barril Asador, "HIELERAS" = Hielera Deportiva, "CAMISETA DE COLOMBIA" = Camiseta de la Selección Colombia). Stock físico nacional total: 173 unidades (corte 11 jul, aún no actualizado). (11) "Premios canjeados" se actualizó con el archivo del 23 jul: pasó de 403 a 405 premios físicos (2 canjes nuevos: +1 Balón de Fútbol y +1 Camiseta de la Selección Colombia, ambos en JAMAR MAYORCA). El resto de fuentes (Universo, Ganadores, Participantes, Stock) siguen en su último corte hasta que se compartan versiones más recientes.
+  </div>
+
+</main>
+<footer>Dashboard generado a partir de los archivos de cierre: Universo de clientes con balones disponibles (v3), Usuarios Participantes totales, Usuarios Ganadores, BD Consolidada de Abonos a Saldo Aplicados y Stock Final en Tiendas (corte 11-21 jul 2026), y Premios Canjeados actualizado al 23 jul 2026. Sin dependencias externas: todos los gráficos se generan con SVG nativo.</footer>
+
+<script>
+const DATA = {"meta": {"fecha_corte": "2026-07-11", "campania": "Se Juega en Casa", "match_pct": 100.0, "canj_pivot_total": 403}, "funnel": {"goles_otorgados": 80390, "clientes_unicos_con_goles": 58139, "usuarios_participantes": 1716, "ganadores": 734, "premios_canjeados": 543}, "funnel_extra": {"ganadores_unicos": 659, "pct_jugaron": 2.95, "pct_ganaron": 1.13, "premios_por_reclamar": 191, "tasa_participacion_global": 2.95}, "funnel_stages": [{"label": "Clientes con goles otorgados", "value": 58139}, {"label": "Usuarios participantes (jugaron)", "value": 1716}, {"label": "Ganadores (clientes únicos)", "value": 659}, {"label": "Premios reclamados/aplicados", "value": 543}], "goles_by_campaign": {"250": 75282, "251": 5108}, "goles_by_depto": {"ATLANTICO": 19810, "ANTIOQUIA": 17931, "BOLIVAR": 12810, "CUNDINAMARCA": 10490, "MAGDALENA": 4958, "CESAR": 3678, "SANTANDER": 3327, "GUAJIRA": 2462, "CORDOBA": 2457, "SUCRE": 2038, "META": 60, "BOYACA": 56}, "goles_by_agencia": {"PRINCIPAL": 9157, "NORTE": 6875, "TIENDA VIRTUAL": 5514, "CUATRO VIENTOS": 5297, "FLORIDA CC": 5132, "SAN FELIPE": 4595, "SANTA MARTA": 4565, "MAYORCA CC": 4459, "MOLINOS CC": 4377, "CACIQUE": 2684, "JAMAR FABRICATO": 2400, "MONTERIA": 2359, "LAS AMERICAS CC": 2161, "ALMACEN VALLEDUPAR LOPERENA": 2145, "SINCELEJO": 2058}, "goles_trend": {"labels": ["2026-05-26", "2026-05-27", "2026-05-28", "2026-05-29", "2026-05-30", "2026-05-31", "2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-14", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-21", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-27", "2026-06-28", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04"], "values": [1340, 925, 901, 1014, 2344, 2287, 1193, 3761, 3651, 3748, 3981, 5812, 2810, 1048, 1090, 2886, 2202, 1605, 2032, 1479, 482, 808, 1742, 1519, 1144, 1359, 801, 435, 265, 991, 1113, 1833, 2249, 1459, 598, 1044, 4205, 4413, 4110, 3711]}, "estado_cartera": {"ADELANTADA": 57614, "ACTIVO": 14017, "Sin dato (compras)": 8394, "CANCELADO": 364, "PREJURIDICO": 1}, "segmento_cliente": {"SIN SEGMENTO": 44805, "ORO": 20100, "PORO": 6095, "CLIENTE NUEVO": 3856, "EJEMPLAR": 2556, "PEJEMPLAR": 1097, "OTROS CREDITO": 968, "RENTABLE": 735, "PRENTABLE": 120, "POTROS CREDITO": 58}, "part_seg": {"Atlantico": 530, "Antioquia": 383, "Cundinamarca": 359, "Bolivar": 251, "Magdalena": 123, "Cesar": 103, "Santander": 101, "Sin Dato": 81, "Sucre": 64, "Cordoba": 57, "Guajira": 42}, "gan_by_region": {"Antioquia": 151, "Atlántico": 142, "Bogotá": 116, "Bolivar": 81, "Magdalena": 69, "Santander": 63, "Cesar": 40, "Sucre": 26, "Guajira": 26, "Cordoba": 18, "Sin dato": 2}, "gan_by_premio": {"Maletín deportivo": 220, "Balón de Fútbol": 218, "Abono a Saldo $100.000": 150, "Termo Edición Especial": 79, "Hielera Deportiva": 24, "Camiseta de la Selección Colombia": 23, "Bono de amoblamiento por $1.000.000 ": 7, "Barril Asador": 6, "Smart TV 50\"": 6, "Bono de amoblamiento por $2.000.000 ": 1}, "gan_trend": {"labels": ["2026-05-26", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07", "2026-06-08", "2026-06-09", "2026-06-10", "2026-06-11", "2026-06-12", "2026-06-13", "2026-06-15", "2026-06-16", "2026-06-17", "2026-06-18", "2026-06-19", "2026-06-20", "2026-06-21", "2026-06-22", "2026-06-23", "2026-06-24", "2026-06-25", "2026-06-26", "2026-06-27", "2026-06-28", "2026-06-29", "2026-06-30", "2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04"], "values": [1, 15, 3, 23, 3, 4, 5, 4, 2, 12, 25, 1, 1, 1, 19, 14, 6, 1, 7, 40, 73, 141, 86, 27, 16, 18, 71, 9, 59, 25, 22]}, "canj_by_premio": {"Maletín deportivo": 156, "Balón de Fútbol": 138, "Termo Edición Especial": 54, "Camiseta de la Selección Colombia": 22, "Hielera Deportiva": 16, "Barril Asador": 6, "Bono de amoblamiento por $1.000.000 ": 6, "Smart TV 50\"": 6, "Bono de amoblamiento por $2.000.000 ": 1, "Abono a Saldo $100.000": 138}, "canj_by_site": {"Atlántico - Jamar Paseo Bolivar": 82, "JAMAR CACIQUE": 51, "JAMAR CRA 30": 67, "JAMAR MAYORCA": 94, "JAMAR RIOHACHA": 1, "JAMAR SAN FELIPE": 57, "JAMAR SANTA MARTA": 52, "JAMAR SINCELEJO": 1}, "premios_detalle": [{"premio": "Maletín deportivo", "ganados": 220, "canjeados": 156, "pendientes": 64, "tasa_reclamo": 70.9, "stock": 63, "diferencia": -1}, {"premio": "Balón de Fútbol", "ganados": 218, "canjeados": 138, "pendientes": 80, "tasa_reclamo": 63.3, "stock": 78, "diferencia": -2}, {"premio": "Abono a Saldo $100.000", "ganados": 150, "canjeados": 138, "pendientes": 12, "tasa_reclamo": 92.0, "stock": null, "diferencia": null}, {"premio": "Termo Edición Especial", "ganados": 79, "canjeados": 54, "pendientes": 25, "tasa_reclamo": 68.4, "stock": 24, "diferencia": -1}, {"premio": "Hielera Deportiva", "ganados": 24, "canjeados": 16, "pendientes": 8, "tasa_reclamo": 66.7, "stock": 7, "diferencia": -1}, {"premio": "Camiseta de la Selección Colombia", "ganados": 23, "canjeados": 22, "pendientes": 1, "tasa_reclamo": 95.7, "stock": 1, "diferencia": 0}, {"premio": "Bono de amoblamiento por $1.000.000 ", "ganados": 7, "canjeados": 6, "pendientes": 1, "tasa_reclamo": 85.7, "stock": null, "diferencia": null}, {"premio": "Barril Asador", "ganados": 6, "canjeados": 6, "pendientes": 0, "tasa_reclamo": 100.0, "stock": 0, "diferencia": 0}, {"premio": "Smart TV 50\"", "ganados": 6, "canjeados": 6, "pendientes": 0, "tasa_reclamo": 100.0, "stock": 0, "diferencia": 0}, {"premio": "Bono de amoblamiento por $2.000.000 ", "ganados": 1, "canjeados": 1, "pendientes": 0, "tasa_reclamo": 100.0, "stock": null, "diferencia": null}], "stock_by_city": {"Barranquilla": 51, "Cartagena": 14, "Santa Marta": 16, "Bucaramanga": 12, "Medellín": 41, "Bogotá": 39}, "valor_monetario": {"pagos_total": 23115508256.0, "compras_total": 42193870503.0, "pagos_participo": 653303547.0, "pagos_no_participo": 22462204709.0, "compras_participo": 2855695167.0, "compras_no_participo": 39338175336.0}};
+
+function fmt(n){ return Number(n).toLocaleString('es-CO'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+const colors = {
+  green:'#0a7a45', greenLight:'#4caf7d', gold:'#f4b400', red:'#e2231a', navy:'#0d2b4b',
+  palette:['#0a7a45','#f4b400','#0d2b4b','#e2231a','#4caf7d','#8a6300','#5c6b64','#1f8a70','#c98f00','#7c1f16','#3f6b8a','#9aa79f']
+};
+
+/* ---------- horizontal bar chart (single series) ---------- */
+function hbarChart(containerId, labels, values, color){
+  const max = Math.max(...values, 1);
+  const el = document.getElementById(containerId);
+  el.innerHTML = labels.map((lab,i)=>{
+    const pct = Math.max(2, Math.round(values[i]/max*100));
+    return `<div class="hbar-row">
+      <div class="hbar-label" title="${esc(lab)}">${esc(lab)}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${color};"></div></div>
+      <div class="hbar-value">${fmt(values[i])}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- horizontal grouped bar chart (two series) ---------- */
+function hbarChartGrouped(containerId, labels, seriesA, seriesB, colorA, colorB, nameA, nameB){
+  const max = Math.max(...seriesA, ...seriesB, 1);
+  const el = document.getElementById(containerId);
+  let html = labels.map((lab,i)=>{
+    const pctA = Math.max(2, Math.round(seriesA[i]/max*100));
+    const pctB = Math.max(2, Math.round(seriesB[i]/max*100));
+    return `<div style="margin:10px 0;">
+      <div style="font-size:12px;font-weight:600;margin-bottom:3px;">${esc(lab)}</div>
+      <div class="hbar-row" style="margin:3px 0;">
+        <div class="hbar-track"><div class="hbar-fill" style="width:${pctA}%;background:${colorA};"></div></div>
+        <div class="hbar-value">${fmt(seriesA[i])}</div>
+      </div>
+      <div class="hbar-row" style="margin:3px 0;">
+        <div class="hbar-track"><div class="hbar-fill" style="width:${pctB}%;background:${colorB};"></div></div>
+        <div class="hbar-value">${fmt(seriesB[i])}</div>
+      </div>
+    </div>`;
+  }).join('');
+  html += `<div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:${colorA};"></span>${nameA}</span>
+    <span class="legend-item"><span class="legend-dot" style="background:${colorB};"></span>${nameB}</span>
+  </div>`;
+  el.innerHTML = html;
+}
+
+/* ---------- line / area chart (SVG) ---------- */
+function lineChart(containerId, labels, values, color, showPeaks){
+  const w = 560, h = 224, padTop = 36, padBottom = 30, padX = 20;
+  const max = Math.max(...values, 1), min = Math.min(...values, 0);
+  const n = values.length;
+  const xStep = (w - padX*2) / Math.max(n-1,1);
+  const yScale = v => h - padBottom - ((v - min) / (max - min || 1)) * (h - padTop - padBottom);
+  const points = values.map((v,i) => [padX + i*xStep, yScale(v)]);
+  const linePath = points.map((p,i)=> (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const areaPath = linePath + ` L${points[points.length-1][0].toFixed(1)},${h-padBottom} L${points[0][0].toFixed(1)},${h-padBottom} Z`;
+  const tickEvery = Math.max(1, Math.round(n/6));
+  let ticks = '';
+  labels.forEach((lab,i)=>{
+    if(i % tickEvery === 0 || i === n-1){
+      ticks += `<text x="${(padX+i*xStep).toFixed(1)}" y="${h-8}" font-size="9" fill="#5c6b64" text-anchor="middle">${esc(lab.slice(5))}</text>`;
+    }
+  });
+  let peakLabels = '';
+  if(showPeaks){
+    for(let i=0;i<n;i++){
+      const isEdge = (i===0 || i===n-1);
+      const isPeak = i>0 && i<n-1 && values[i]>values[i-1] && values[i]>values[i+1];
+      if(isEdge || isPeak){
+        const [px,py] = points[i];
+        const above = py > 26;
+        const ly = above ? py-9 : py+18;
+        const txt = fmt(values[i]);
+        const boxW = Math.max(26, txt.length*6.3);
+        peakLabels += `<rect x="${(px-boxW/2).toFixed(1)}" y="${(ly-10).toFixed(1)}" width="${boxW.toFixed(1)}" height="13" fill="#ffffffd9" rx="3"/>`;
+        peakLabels += `<text x="${px.toFixed(1)}" y="${(ly-1).toFixed(1)}" font-size="9.5" font-weight="700" fill="${color}" text-anchor="middle">${txt}</text>`;
+        peakLabels += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2.5" fill="${color}"/>`;
+      }
+    }
+  }
+  const svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="224" preserveAspectRatio="xMinYMin meet">
+    <path d="${areaPath}" fill="${color}22" stroke="none"/>
+    <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2"/>
+    ${ticks}
+    ${peakLabels}
+  </svg>`;
+  document.getElementById(containerId).innerHTML = svg;
+}
+
+/* ---------- donut / pie chart (SVG) ---------- */
+function donutChart(containerId, labels, values, palette, donut, showPercent){
+  const total = values.reduce((a,b)=>a+b,0) || 1;
+  const cx=100, cy=100, r=80, rInner = donut ? 45 : 0;
+  let angle = -Math.PI/2;
+  let paths = '';
+  let percentLabels = '';
+  const polar = (cx,cy,r,a) => [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+  values.forEach((v,i)=>{
+    const frac = v/total;
+    const a0 = angle;
+    const a1 = angle + frac*2*Math.PI;
+    const [x0,y0] = polar(cx,cy,r,a0);
+    const [x1,y1] = polar(cx,cy,r,a1);
+    const large = (a1-a0) > Math.PI ? 1 : 0;
+    let d;
+    if(rInner>0){
+      const [xi0,yi0] = polar(cx,cy,rInner,a1);
+      const [xi1,yi1] = polar(cx,cy,rInner,a0);
+      d = `M${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} L${xi0},${yi0} A${rInner},${rInner} 0 ${large} 0 ${xi1},${yi1} Z`;
+    } else {
+      d = `M${cx},${cy} L${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} Z`;
+    }
+    paths += `<path d="${d}" fill="${palette[i % palette.length]}" stroke="#fff" stroke-width="1.5"/>`;
+    if(showPercent && frac > 0){
+      const mid = (a0+a1)/2;
+      const labelR = rInner>0 ? (r+rInner)/2 : r*0.62;
+      const [lx,ly] = polar(cx,cy,labelR,mid);
+      const pct = Math.round(frac*1000)/10;
+      percentLabels += `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" dy="0.35em" font-size="13" font-weight="800" fill="#fff" text-anchor="middle">${pct}%</text>`;
+    }
+    angle = a1;
+  });
+  const legend = labels.map((lab,i)=>`<span class="legend-item"><span class="legend-dot" style="background:${palette[i % palette.length]};"></span>${esc(lab)} (${fmt(values[i])})</span>`).join('');
+  const svg = `<svg viewBox="0 0 200 200" width="200" height="200" style="display:block;margin:0 auto;">${paths}${percentLabels}</svg><div class="legend">${legend}</div>`;
+  document.getElementById(containerId).innerHTML = svg;
+}
+
+/* ---------- funnel chart (SVG trapezoids, stylized widths) ---------- */
+function funnelChart(containerId, stages, palette){
+  const n = stages.length;
+  const stageH = 76, gapY = 3;
+  const maxW = 460;
+  const ratio = 0.80;
+  const widths = [];
+  for(let i=0;i<=n;i++){ widths.push(maxW * Math.pow(ratio,i)); }
+  const totalH = n*(stageH+gapY) - gapY;
+  const cx = maxW/2;
+  const top0 = stages[0].value;
+
+  let shapes = '';
+  for(let i=0;i<n;i++){
+    const y0 = i*(stageH+gapY);
+    const y1 = y0+stageH;
+    const wTop = widths[i], wBot = widths[i+1];
+    const x0a = cx - wTop/2, x0b = cx + wTop/2;
+    const x1a = cx - wBot/2, x1b = cx + wBot/2;
+    const pts = `${x0a.toFixed(1)},${y0} ${x0b.toFixed(1)},${y0} ${x1b.toFixed(1)},${y1} ${x1a.toFixed(1)},${y1}`;
+    const pctTop = Math.round(stages[i].value/top0*1000)/10;
+    const pctPrev = i===0 ? 100 : Math.round(stages[i].value/stages[i-1].value*1000)/10;
+    const color = palette[i % palette.length];
+    const midY = (y0+y1)/2;
+    shapes += `<polygon points="${pts}" fill="${color}" stroke="#fff" stroke-width="2"/>`;
+    shapes += `<text x="${cx}" y="${midY-10}" text-anchor="middle" fill="#fff" font-size="13" font-weight="700">${esc(stages[i].label)}</text>`;
+    shapes += `<text x="${cx}" y="${midY+10}" text-anchor="middle" fill="#fff" font-size="16" font-weight="800">${fmt(stages[i].value)}</text>`;
+    shapes += `<text x="${cx}" y="${midY+26}" text-anchor="middle" fill="#ffffffcc" font-size="10.5">${pctTop}% del total${i>0 ? '  ·  '+pctPrev+'% vs. etapa anterior' : ''}</text>`;
+  }
+  const svg = `<svg viewBox="0 0 ${maxW} ${totalH}" width="100%" style="max-width:560px;display:block;margin:0 auto;">${shapes}</svg>`;
+  document.getElementById(containerId).innerHTML = svg;
+}
+
+/* ================= build page ================= */
+
+// KPI cards - fila 1: cifras numéricas, en orden lógico del embudo
+const funnel = DATA.funnel;
+const fx = DATA.funnel_extra;
+const kpiDefs = [
+  {label:'Goles otorgados', value: funnel.goles_otorgados, sub: fmt(funnel.clientes_unicos_con_goles)+' clientes únicos'},
+  {label:'Usuarios participantes', value: funnel.usuarios_participantes, sub:'jugaron en el portal'},
+  {label:'Ganadores (5 goles)', value: funnel.ganadores, sub: fmt(fx.ganadores_unicos)+' clientes únicos'},
+  {label:'Premios canjeados', value: funnel.premios_canjeados, sub:'405 en tienda + 138 abonos aplicados'},
+  {label:'Premios por reclamar', value: fx.premios_por_reclamar, sub:'ganados − canjeados'},
+];
+document.getElementById('kpiFunnel').innerHTML = kpiDefs.map(k=>`
+  <div class="kpi">
+    <div class="label">${k.label}</div>
+    <div class="value">${typeof k.value==='number'?fmt(k.value):k.value}</div>
+    <div class="sub">${k.sub}</div>
+  </div>`).join('');
+
+// KPI cards - fila 2: porcentajes, en orden lógico del embudo
+const kpiExtraDefs = [
+  {label:'Tasa de participación global', value: fx.tasa_participacion_global+'%', sub:'sobre el universo con goles otorgados'},
+  {label:'% de clientes que jugaron', value: fx.pct_jugaron+'%', sub:'participantes / clientes con goles'},
+  {label:'% de clientes que ganaron', value: fx.pct_ganaron+'%', sub:'ganadores únicos / clientes con goles'},
+  {label:'Tasa de reclamo', value: Math.round(funnel.premios_canjeados/funnel.ganadores*1000)/10 + '%', sub:'canjeados / ganados'},
+];
+document.getElementById('kpiFunnelExtra').innerHTML = kpiExtraDefs.map(k=>`
+  <div class="kpi alt">
+    <div class="label">${k.label}</div>
+    <div class="value">${typeof k.value==='number'?fmt(k.value):k.value}</div>
+    <div class="sub">${k.sub}</div>
+  </div>`).join('');
+
+// Embudo de conversión visual
+funnelChart('funnelChart', DATA.funnel_stages, [colors.navy, colors.green_dark || '#0f5c3a', colors.green, '#4fae82']);
+
+// Estado de cartera (hbar)
+const ecLabels = Object.keys(DATA.estado_cartera).map(k=>{
+  const m = {'ADELANTADA':'Adelantado','ACTIVO':'Activo','CANCELADO':'Cancelado','PREJURIDICO':'Prejurídico'};
+  return m[k] || k;
+});
+hbarChart('chartEstadoCartera', ecLabels, Object.values(DATA.estado_cartera), colors.green);
+
+// Oportunidades por segmento (hbar)
+const segLabels = Object.keys(DATA.segmento_cliente).map(s => s.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' '));
+hbarChart('chartSegmento', segLabels, Object.values(DATA.segmento_cliente), colors.navy);
+
+// KPIs de valor monetario
+const vm = DATA.valor_monetario;
+function money(n){ return '$' + (n/1e6).toLocaleString('es-CO',{maximumFractionDigits:0}) + 'M'; }
+const kpiValorDefs = [
+  {label:'Valor pagado (campaña 250)', value: money(vm.pagos_total), sub:'pagos que generaron goles'},
+  {label:'Valor comprado (campaña 251)', value: money(vm.compras_total), sub:'compras que generaron goles'},
+  {label:'% valor pagos de clientes que jugaron', value: Math.round(vm.pagos_participo/vm.pagos_total*1000)/10+'%', sub: money(vm.pagos_participo)+' de '+money(vm.pagos_total)},
+  {label:'% valor compras de clientes que jugaron', value: Math.round(vm.compras_participo/vm.compras_total*1000)/10+'%', sub: money(vm.compras_participo)+' de '+money(vm.compras_total)},
+];
+document.getElementById('kpiValor').innerHTML = kpiValorDefs.map(k=>`
+  <div class="kpi alt">
+    <div class="label">${k.label}</div>
+    <div class="value">${k.value}</div>
+    <div class="sub">${k.sub}</div>
+  </div>`).join('');
+
+// Goles otorgados por tipo (%) vs Valor generado por tipo (%) - contraste volumen vs valor
+donutChart('chartGolesTipoPct',
+  ['Pagos (250)','Compras (251)'],
+  [DATA.goles_by_campaign['250']||0, DATA.goles_by_campaign['251']||0],
+  [colors.green, colors.gold], true, true);
+
+donutChart('chartValorTipo',
+  ['Pagos (250)','Compras (251)'],
+  [vm.pagos_total, vm.compras_total],
+  [colors.green, colors.gold], true, true);
+
+// Valor por participación (jugó vs no jugó) - dos donas con % (pesos completos en la leyenda)
+donutChart('chartValorParticipacionPagos',
+  ['Jugaron','No jugaron'],
+  [vm.pagos_participo, vm.pagos_no_participo],
+  [colors.green, '#7c8a83'], true, true);
+
+donutChart('chartValorParticipacionCompras',
+  ['Jugaron','No jugaron'],
+  [vm.compras_participo, vm.compras_no_participo],
+  [colors.green, '#7c8a83'], true, true);
+
+// Goles trend (line, con etiquetas en los picos)
+lineChart('chartGolesTrend', DATA.goles_trend.labels, DATA.goles_trend.values, colors.green, true);
+
+// Goles por campaña (donut, con porcentajes)
+donutChart('chartGolesCampania',
+  ['250 · Pago de cuotas','251 · Compras'],
+  [DATA.goles_by_campaign['250']||0, DATA.goles_by_campaign['251']||0],
+  [colors.green, colors.gold], true, true);
+
+// Goles por depto (hbar)
+hbarChart('chartGolesDepto', Object.keys(DATA.goles_by_depto), Object.values(DATA.goles_by_depto), colors.navy);
+
+// Goles por agencia (hbar, top 10)
+const agenciaTop10 = Object.entries(DATA.goles_by_agencia).slice(0, 10);
+hbarChart('chartGolesAgencia', agenciaTop10.map(e=>e[0]), agenciaTop10.map(e=>e[1]), colors.green);
+
+// Premios ganados vs canjeados (grouped hbar)
+const premLabels = DATA.premios_detalle.map(p=>p.premio.trim());
+hbarChartGrouped('chartPremiosGanCanj', premLabels,
+  DATA.premios_detalle.map(p=>p.ganados),
+  DATA.premios_detalle.map(p=>p.canjeados),
+  colors.gold, colors.green, 'Ganados', 'Canjeados');
+
+// Tabla premios (incluye stock físico y diferencia)
+const tbody = document.querySelector('#tablaPremios tbody');
+tbody.innerHTML = DATA.premios_detalle.map(p=>{
+  let cls = p.tasa_reclamo>=70?'high':(p.tasa_reclamo>=40?'mid':'low');
+  const stockTxt = p.stock === null ? '—' : fmt(p.stock);
+  let difTxt = '—', difCls = '';
+  if(p.diferencia !== null){
+    difCls = p.diferencia < 0 ? 'low' : (p.diferencia === 0 ? 'mid' : 'high');
+    difTxt = (p.diferencia > 0 ? '+' : '') + p.diferencia;
+  }
+  return `<tr>
+    <td>${esc(p.premio.trim())}</td>
+    <td>${fmt(p.ganados)}</td>
+    <td>${fmt(p.canjeados)}</td>
+    <td>${fmt(p.pendientes)}</td>
+    <td><span class="pill ${cls}">${p.tasa_reclamo}%</span></td>
+    <td>${stockTxt}</td>
+    <td>${p.diferencia===null?'—':`<span class="pill ${difCls}">${difTxt}</span>`}</td>
+  </tr>`;
+}).join('');
+
+// Stock físico por ciudad (hbar)
+hbarChart('chartStockCiudad', Object.keys(DATA.stock_by_city), Object.values(DATA.stock_by_city), colors.navy);
+
+// KPIs de resumen de inventario físico
+const stockValues = DATA.premios_detalle.filter(p=>p.stock!==null);
+const stockTotal = stockValues.reduce((a,p)=>a+p.stock,0);
+const deficitItems = stockValues.filter(p=>p.diferencia<0);
+const deficitTotal = deficitItems.reduce((a,p)=>a+Math.abs(p.diferencia),0);
+const kpiStockDefs = [
+  {label:'Stock físico total', value: stockTotal, sub:'unidades en tiendas al 11 jul'},
+  {label:'Déficit total', value: deficitTotal, sub: deficitItems.length+' de '+stockValues.length+' productos con faltante'},
+];
+document.getElementById('kpiStock').innerHTML = kpiStockDefs.map(k=>`
+  <div class="kpi alt">
+    <div class="label">${k.label}</div>
+    <div class="value">${fmt(k.value)}</div>
+    <div class="sub">${k.sub}</div>
+  </div>`).join('');
+
+// Canjeados por tienda (hbar)
+hbarChart('chartCanjSite', Object.keys(DATA.canj_by_site), Object.values(DATA.canj_by_site), colors.red);
+
+// Ganadores por región (hbar)
+hbarChart('chartGanRegion', Object.keys(DATA.gan_by_region), Object.values(DATA.gan_by_region), colors.navy);
+
+// Participantes por segmento (donut)
+donutChart('chartPartSeg', Object.keys(DATA.part_seg), Object.values(DATA.part_seg), colors.palette, false);
+
+// Tendencia ganadores (line)
+lineChart('chartGanTrend', DATA.gan_trend.labels, DATA.gan_trend.values, colors.gold);
+</script>
+</body>
+</html>
